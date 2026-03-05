@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Orchestrator — Code & Concept Map</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242736;
+    --border: #2e3144;
+    --text: #e2e4eb;
+    --text2: #8b8fa3;
+    --accent: #6c7ee1;
+    --accent2: #4c5ec7;
+
+    --blue: #3b82f6;
+    --green: #10b981;
+    --orange: #f97316;
+    --red: #ef4444;
+    --purple: #a78bfa;
+    --pink: #ec4899;
+    --cyan: #06b6d4;
+    --amber: #f59e0b;
+
+    --node-orchestration: #1e2a4a;
+    --node-orchestration-border: #3b5998;
+    --node-agent: #1a2e1a;
+    --node-agent-border: #2d6a2d;
+    --node-script: #2a1e3a;
+    --node-script-border: #6b3fa0;
+    --node-config: #2a2415;
+    --node-config-border: #8a7520;
+    --node-command: #1a2a2a;
+    --node-command-border: #2d7a7a;
+    --node-external: #2a1520;
+    --node-external-border: #8a3050;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: 1fr auto;
+    height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    grid-row: 1 / 3;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sidebar h1 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 4px;
+  }
+
+  .sidebar h2 {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .section { display: flex; flex-direction: column; gap: 6px; }
+
+  /* Preset buttons */
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .preset-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .preset-btn.active { background: var(--accent2); border-color: var(--accent); color: #fff; }
+
+  /* Layer checkboxes */
+  .layer-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .layer-toggle input { accent-color: var(--accent); }
+  .layer-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Connection filters */
+  .conn-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .conn-toggle input { accent-color: var(--accent); }
+  .conn-line {
+    width: 20px;
+    height: 2px;
+    flex-shrink: 0;
+    border-radius: 1px;
+  }
+
+  /* Knowledge node list */
+  .node-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .node-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .node-item:hover { background: var(--surface2); }
+  .node-item .knowledge-badge {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+    flex-shrink: 0;
+    min-width: 50px;
+    text-align: center;
+  }
+  .badge-know { background: #064e3b; color: #6ee7b7; }
+  .badge-fuzzy { background: #78350f; color: #fcd34d; }
+  .badge-unknown { background: #7f1d1d; color: #fca5a5; }
+
+  /* Comments */
+  .comments-section { flex: 1; min-height: 0; }
+  .comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .comment-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 11px;
+  }
+  .comment-item .comment-target {
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+  .comment-item .comment-file {
+    color: var(--text2);
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+  }
+  .comment-item .comment-text { margin-top: 4px; color: var(--text); }
+  .comment-item .comment-delete {
+    float: right;
+    background: none;
+    border: none;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .comment-item .comment-delete:hover { color: var(--red); }
+
+  .no-comments { color: var(--text2); font-size: 11px; font-style: italic; }
+
+  /* ── Canvas area ── */
+  .canvas-area {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(108,126,225,0.03) 0%, transparent 70%),
+      var(--bg);
+  }
+
+  .canvas-area svg {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+  .canvas-area svg:active { cursor: grabbing; }
+
+  .zoom-controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 4px;
+  }
+  .zoom-btn {
+    width: 32px;
+    height: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+  }
+  .zoom-btn:hover { border-color: var(--accent); }
+
+  /* Legend */
+  .legend {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-line { width: 20px; height: 2px; border-radius: 1px; }
+
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    max-width: 280px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip .tt-title { font-weight: 600; margin-bottom: 2px; }
+  .tooltip .tt-file { color: var(--text2); font-family: 'SF Mono', monospace; font-size: 10px; margin-bottom: 6px; }
+  .tooltip .tt-desc { color: var(--text2); line-height: 1.4; }
+
+  /* Comment modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    width: 380px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  }
+  .modal h3 { font-size: 14px; margin-bottom: 4px; }
+  .modal .modal-file { color: var(--text2); font-family: 'SF Mono', monospace; font-size: 11px; margin-bottom: 12px; }
+  .modal textarea {
+    width: 100%;
+    height: 80px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    resize: vertical;
+  }
+  .modal textarea:focus { outline: none; border-color: var(--accent); }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .modal-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    border: 1px solid var(--border);
+  }
+  .modal-btn.cancel { background: var(--surface2); color: var(--text); }
+  .modal-btn.save { background: var(--accent2); border-color: var(--accent); color: #fff; }
+
+  /* ── Prompt output ── */
+  .prompt-area {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    max-height: 160px;
+  }
+
+  .prompt-text {
+    flex: 1;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text2);
+    overflow-y: auto;
+    max-height: 136px;
+    white-space: pre-wrap;
+  }
+
+  .copy-btn {
+    background: var(--accent2);
+    border: 1px solid var(--accent);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { background: var(--accent); }
+  .copy-btn.copied { background: #064e3b; border-color: #10b981; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+    <div>
+      <h1>AI Orchestrator</h1>
+      <span style="font-size:11px;color:var(--text2)">Code & Concept Map</span>
+    </div>
+
+    <div class="section">
+      <h2>View Presets</h2>
+      <div class="presets" id="presets"></div>
+    </div>
+
+    <div class="section">
+      <h2>Layers</h2>
+      <div id="layer-toggles"></div>
+    </div>
+
+    <div class="section">
+      <h2>Connections</h2>
+      <div id="conn-toggles"></div>
+    </div>
+
+    <div class="section">
+      <h2>Components <span style="font-size:10px;color:var(--text2)">(click to cycle knowledge)</span></h2>
+      <div class="node-list" id="node-list"></div>
+    </div>
+
+    <div class="section comments-section">
+      <h2>Comments (<span id="comment-count">0</span>)</h2>
+      <div class="comment-list" id="comment-list">
+        <div class="no-comments">Click a node on the canvas to add feedback</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Canvas ── -->
+  <div class="canvas-area">
+    <svg id="canvas"></svg>
+    <div class="zoom-controls">
+      <button class="zoom-btn" onclick="zoomIn()">+</button>
+      <button class="zoom-btn" onclick="zoomOut()">−</button>
+      <button class="zoom-btn" onclick="zoomReset()" style="font-size:11px">⟲</button>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="tooltip" id="tooltip"></div>
+  </div>
+
+  <!-- ── Prompt ── -->
+  <div class="prompt-area">
+    <div class="prompt-text" id="prompt-text">Adjust knowledge levels and add comments to generate a prompt.</div>
+    <button class="copy-btn" id="copy-btn" onclick="copyPrompt()">Copy</button>
+  </div>
+</div>
+
+<!-- ── Comment Modal ── -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Component</h3>
+    <div class="modal-file" id="modal-file">file/path</div>
+    <textarea id="modal-textarea" placeholder="What would you like to change, understand, or improve about this component?"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn save" onclick="saveComment()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA — Real architecture of the AI Orchestrator
+// ═══════════════════════════════════════════
+
+const LAYERS = {
+  user:          { label: 'User / Entry',     color: '#3b82f6', fill: '#1e2a4a', border: '#3b5998' },
+  orchestration: { label: 'Orchestration',    color: '#a78bfa', fill: '#251e3a', border: '#6b3fa0' },
+  agents:        { label: 'Agents (Models)',  color: '#10b981', fill: '#1a2e1a', border: '#2d6a2d' },
+  scripts:       { label: 'Scripts / Infra',  color: '#f97316', fill: '#2a1e15', border: '#8a5020' },
+  config:        { label: 'Config / State',   color: '#f59e0b', fill: '#2a2415', border: '#8a7520' },
+  commands:      { label: 'Slash Commands',   color: '#06b6d4', fill: '#152a2a', border: '#2d7a7a' },
+  skills:        { label: 'Skills',           color: '#ec4899', fill: '#2a1525', border: '#8a3055' },
+};
+
+const CONN_TYPES = {
+  'invokes':    { color: '#3b82f6', dash: '',      label: 'Invokes / Calls' },
+  'configures': { color: '#f59e0b', dash: '6,3',   label: 'Configures' },
+  'spawns':     { color: '#10b981', dash: '',       label: 'Spawns Agent' },
+  'monitors':   { color: '#ef4444', dash: '4,4',   label: 'Monitors' },
+  'reads':      { color: '#a78bfa', dash: '8,4',   label: 'Reads / Uses' },
+  'produces':   { color: '#ec4899', dash: '3,3',   label: 'Produces' },
+};
+
+const nodes = [
+  // User / Entry (y ~40-80)
+  { id: 'user',            label: 'User',                 subtitle: 'CLI / Terminal',                        x: 480, y: 40,  w: 130, h: 42, layer: 'user',
+    desc: 'Developer using the orchestrator via terminal. Can invoke slash commands, run scripts, or use OpenClaw.' },
+  { id: 'claude-cli',      label: 'Claude Code CLI',      subtitle: 'claude --model opus-4-6',               x: 260, y: 40,  w: 150, h: 42, layer: 'user',
+    desc: 'Primary interface. Runs Claude Opus 4.6. Loads CLAUDE.md for orchestration context. Subscription auth.' },
+
+  // Orchestration (y ~130-200)
+  { id: 'mode1',           label: 'Mode 1: OpenClaw',     subtitle: 'Daemon orchestrator',                   x: 120, y: 140, w: 160, h: 42, layer: 'orchestration',
+    desc: 'Persistent daemon that manages agents via task routing. Routes through Claude Code CLI for subscription auth. Gateway on port 18789.' },
+  { id: 'mode2',           label: 'Mode 2: Sub-Agents',   subtitle: 'Direct CLI invocation',                 x: 380, y: 140, w: 170, h: 42, layer: 'orchestration',
+    desc: 'Claude Code invokes Codex/Gemini headlessly via slash commands. Lightweight, fast. No daemon needed.' },
+  { id: 'mode3',           label: 'Mode 3: Agent Teams',  subtitle: 'Parallel collaboration',                x: 650, y: 140, w: 170, h: 42, layer: 'orchestration',
+    desc: 'Experimental. Multiple Claude instances with shared task lists and inter-agent messaging. 2-4 teammates.' },
+  { id: 'agents-md',       label: 'AGENTS.md',            subtitle: 'CLAUDE.md → symlink',                   x: 510, y: 210, w: 140, h: 42, layer: 'orchestration',
+    desc: 'Master context file. Agent selection guide, CLI commands, synthesis patterns, routing table. CLAUDE.md symlinks here.' },
+
+  // Agents (y ~280-340)
+  { id: 'codex',           label: 'Codex',                subtitle: 'gpt-5.3-codex',                         x: 150, y: 300, w: 130, h: 42, layer: 'agents',
+    desc: 'OpenAI workhorse. 90% of coding tasks. Strongest reasoning, lowest false-positive rate. Backend, security, refactors.' },
+  { id: 'gemini',          label: 'Gemini',               subtitle: 'gemini-3.1-pro-preview',                x: 380, y: 300, w: 150, h: 42, layer: 'agents',
+    desc: 'Google. Design sensibility, 1M token context. Architecture review, UI/UX specs, research.' },
+  { id: 'claude-agent',    label: 'Claude (Agent)',        subtitle: 'claude-opus-4-6',                       x: 610, y: 300, w: 150, h: 42, layer: 'agents',
+    desc: 'Claude Code instance spawned as a teammate or sub-agent. Handles frontend, git ops, research.' },
+  { id: 'team-lead',       label: 'Team Lead',            subtitle: 'Claude coordinator',                    x: 790, y: 300, w: 140, h: 42, layer: 'agents',
+    desc: 'In Mode 3, the main Claude session acts as team lead — creates tasks, spawns teammates, synthesizes results.' },
+
+  // Scripts (y ~400-460)
+  { id: 'spawn-agent',     label: 'spawn-agent.sh',       subtitle: 'scripts/',                              x: 100, y: 410, w: 150, h: 42, layer: 'scripts',
+    desc: 'Launch agent in isolated env. Auto-routes by keyword (backend→Codex, UI→Claude, design→Gemini). Creates worktree, tmux session.' },
+  { id: 'check-agents',    label: 'check-agents.sh',      subtitle: 'scripts/',                              x: 320, y: 410, w: 155, h: 42, layer: 'scripts',
+    desc: 'Monitor all running agents. Checks: tmux alive? PR created? CI status? Auto-triggers recovery on failure. Runs via cron every 10m.' },
+  { id: 'recover-agent',   label: 'recover-agent.sh',     subtitle: 'scripts/',                              x: 540, y: 410, w: 155, h: 42, layer: 'scripts',
+    desc: 'Smart failure recovery. Captures evidence → diagnoses via Claude (1 LLM call) → rewrites prompt → respawns. Respects maxRetries.' },
+  { id: 'capture-context', label: 'capture-context.sh',   subtitle: 'scripts/',                              x: 540, y: 470, w: 160, h: 42, layer: 'scripts',
+    desc: 'Harvest failure evidence (zero LLM calls). Collects: tmux scrollback, git diff, CI logs, test output. Outputs .md report.' },
+  { id: 'review-pr',       label: 'review-pr.sh',         subtitle: 'scripts/',                              x: 760, y: 410, w: 140, h: 42, layer: 'scripts',
+    desc: 'Triple-model PR review. Runs Codex + Claude + Gemini in parallel on each PR. Aggregates results.' },
+  { id: 'setup-sh',        label: 'setup.sh',             subtitle: 'scripts/',                              x: 100, y: 470, w: 130, h: 42, layer: 'scripts',
+    desc: 'Initial setup. Tool checks, file copies, plugin install, .gitignore, optional --agent-teams flag for Mode 3.' },
+  { id: 'setup-teams',     label: 'setup-agent-teams.sh', subtitle: 'scripts/',                              x: 300, y: 470, w: 175, h: 42, layer: 'scripts',
+    desc: 'Enables experimental Agent Teams (Mode 3). Sets CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in settings.' },
+
+  // Config / State (y ~540-600)
+  { id: 'settings-json',   label: 'settings.json',        subtitle: '.claude/',                              x: 100, y: 560, w: 140, h: 42, layer: 'config',
+    desc: 'Claude Code permissions. Allows: Bash(codex exec*), Bash(gemini*), git, tmux. Env: CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1.' },
+  { id: 'active-tasks',    label: 'active-tasks.json',    subtitle: '.openclaw/',                            x: 320, y: 560, w: 155, h: 42, layer: 'config',
+    desc: 'Running agent registry. JSON array: id, tmuxSession, agent, branch, status, retries, timestamps.' },
+  { id: 'failures-dir',    label: 'failures/',            subtitle: '.openclaw/failures/',                   x: 540, y: 560, w: 140, h: 42, layer: 'config',
+    desc: 'Auto-generated failure reports from capture-context.sh. Markdown files with evidence for diagnosis.' },
+  { id: 'oc-config',       label: 'openclaw-config.yaml', subtitle: 'templates/',                            x: 740, y: 560, w: 175, h: 42, layer: 'config',
+    desc: 'OpenClaw daemon config. Routes orchestrator through Claude Code CLI (subscription auth). Gateway on port 18789.' },
+
+  // Slash Commands (y ~650)
+  { id: 'cmd-codex',       label: '/ask-codex',           subtitle: '.claude/commands/',                     x: 100, y: 650, w: 130, h: 38, layer: 'commands',
+    desc: 'Invoke Codex headlessly. Runs: codex exec --model gpt-5.3-codex --sandbox read-only.' },
+  { id: 'cmd-gemini',      label: '/ask-gemini',          subtitle: '.claude/commands/',                     x: 260, y: 650, w: 135, h: 38, layer: 'commands',
+    desc: 'Invoke Gemini headlessly. Runs: gemini -m gemini-3.1-pro-preview --yolo.' },
+  { id: 'cmd-consult',     label: '/consult-all',         subtitle: '.claude/commands/',                     x: 425, y: 650, w: 135, h: 38, layer: 'commands',
+    desc: 'Run both Codex and Gemini simultaneously. Waits for both, then synthesizes consensus/divergence/unique insights.' },
+  { id: 'cmd-team',        label: '/agent-team',          subtitle: '.claude/commands/',                     x: 590, y: 650, w: 135, h: 38, layer: 'commands',
+    desc: 'Spawn Agent Teams (Mode 3). Patterns: research, implement, review, debug. Creates team + shared task list.' },
+  { id: 'cmd-visual',      label: '/project-recap',       subtitle: '.claude/commands/',                     x: 755, y: 650, w: 140, h: 38, layer: 'commands',
+    desc: 'Generate visual HTML project overview via visual-explainer skill.' },
+
+  // Skills (y ~730)
+  { id: 'skill-subagent',  label: 'Sub-Agent Check',      subtitle: '.claude/skills/',                       x: 150, y: 730, w: 155, h: 38, layer: 'skills',
+    desc: 'Decision framework: when to invoke sub-agents. Always before destructive changes, security-sensitive code. Skip for trivial changes.' },
+  { id: 'skill-visual',    label: 'Visual Explainer',     subtitle: '.claude/skills/visual-explainer/',      x: 380, y: 730, w: 160, h: 38, layer: 'skills',
+    desc: 'Generate self-contained HTML diagrams. 7 content types, 5 aesthetics. Blueprint, editorial, monochrome themes.' },
+  { id: 'skill-swarm',     label: 'Agent Swarm',          subtitle: '.openclaw/skills/agent-swarm/',         x: 620, y: 730, w: 150, h: 38, layer: 'skills',
+    desc: 'OpenClaw skill for spawning and managing agent fleets. 160+ lines of routing and coordination logic.' },
+];
+
+const connections = [
+  // User entry points
+  { from: 'user',        to: 'claude-cli',      type: 'invokes',    label: 'starts' },
+  { from: 'user',        to: 'spawn-agent',     type: 'invokes',    label: 'runs' },
+  { from: 'claude-cli',  to: 'mode2',           type: 'invokes',    label: 'direct' },
+  { from: 'claude-cli',  to: 'mode3',           type: 'invokes',    label: 'teams' },
+
+  // Orchestration → Agents
+  { from: 'mode1',       to: 'spawn-agent',     type: 'invokes',    label: 'delegates' },
+  { from: 'mode2',       to: 'codex',           type: 'spawns',     label: 'headless' },
+  { from: 'mode2',       to: 'gemini',          type: 'spawns',     label: 'headless' },
+  { from: 'mode3',       to: 'claude-agent',    type: 'spawns',     label: 'teammate' },
+  { from: 'mode3',       to: 'team-lead',       type: 'spawns',     label: 'coordinator' },
+  { from: 'team-lead',   to: 'claude-agent',    type: 'spawns',     label: 'tasks' },
+
+  // Context reading
+  { from: 'claude-cli',  to: 'agents-md',       type: 'reads',      label: 'loads' },
+  { from: 'mode1',       to: 'agents-md',       type: 'reads',      label: 'reads' },
+  { from: 'agents-md',   to: 'mode2',           type: 'configures', label: 'guides' },
+
+  // Scripts → infrastructure
+  { from: 'spawn-agent', to: 'codex',           type: 'spawns',     label: 'auto-route' },
+  { from: 'spawn-agent', to: 'gemini',          type: 'spawns',     label: 'auto-route' },
+  { from: 'spawn-agent', to: 'claude-agent',    type: 'spawns',     label: 'auto-route' },
+  { from: 'spawn-agent', to: 'active-tasks',    type: 'produces',   label: 'registers' },
+  { from: 'check-agents',to: 'active-tasks',    type: 'reads',      label: 'polls' },
+  { from: 'check-agents',to: 'recover-agent',   type: 'invokes',    label: 'on failure' },
+  { from: 'recover-agent',to: 'capture-context',type: 'invokes',    label: 'step 1' },
+  { from: 'recover-agent',to: 'spawn-agent',    type: 'invokes',    label: 'respawn' },
+  { from: 'capture-context', to: 'failures-dir',type: 'produces',   label: 'writes' },
+  { from: 'review-pr',   to: 'codex',           type: 'invokes',    label: 'review' },
+  { from: 'review-pr',   to: 'gemini',          type: 'invokes',    label: 'review' },
+
+  // Setup
+  { from: 'setup-sh',    to: 'settings-json',   type: 'configures', label: 'writes' },
+  { from: 'setup-teams', to: 'settings-json',   type: 'configures', label: 'enables' },
+
+  // Config → modes
+  { from: 'settings-json', to: 'claude-cli',    type: 'configures', label: 'permissions' },
+  { from: 'oc-config',     to: 'mode1',         type: 'configures', label: 'daemon cfg' },
+
+  // Commands → agents
+  { from: 'cmd-codex',   to: 'codex',           type: 'invokes',    label: 'exec' },
+  { from: 'cmd-gemini',  to: 'gemini',          type: 'invokes',    label: 'exec' },
+  { from: 'cmd-consult', to: 'codex',           type: 'invokes',    label: 'parallel' },
+  { from: 'cmd-consult', to: 'gemini',          type: 'invokes',    label: 'parallel' },
+  { from: 'cmd-team',    to: 'mode3',           type: 'invokes',    label: 'triggers' },
+
+  // Commands → skills
+  { from: 'cmd-visual',  to: 'skill-visual',    type: 'invokes',    label: 'uses' },
+  { from: 'mode1',       to: 'skill-swarm',     type: 'reads',      label: 'guides' },
+
+  // Skills → decisions
+  { from: 'skill-subagent', to: 'mode2',        type: 'reads',      label: 'guides' },
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+
+const PRESETS = {
+  'Full System':   { layers: Object.keys(LAYERS), conns: Object.keys(CONN_TYPES) },
+  'Mode 1 Flow':   { layers: ['orchestration','agents','scripts','config'], conns: ['invokes','spawns','reads','configures','produces'], highlight: ['mode1','spawn-agent','check-agents','recover-agent','capture-context','codex','gemini','claude-agent','active-tasks','failures-dir','oc-config','agents-md'] },
+  'Mode 2 Flow':   { layers: ['user','orchestration','agents','commands'], conns: ['invokes','spawns','reads'], highlight: ['claude-cli','mode2','codex','gemini','cmd-codex','cmd-gemini','cmd-consult','agents-md'] },
+  'Mode 3 Teams':  { layers: ['user','orchestration','agents','commands','scripts'], conns: ['invokes','spawns'], highlight: ['claude-cli','mode3','claude-agent','team-lead','cmd-team','setup-teams'] },
+  'Recovery Flow': { layers: ['scripts','config','agents'], conns: ['invokes','reads','produces','spawns','monitors'], highlight: ['check-agents','recover-agent','capture-context','spawn-agent','active-tasks','failures-dir','codex','gemini','claude-agent'] },
+};
+
+const KNOWLEDGE = { know: 'Know', fuzzy: 'Fuzzy', unknown: 'Unknown' };
+const KNOWLEDGE_ORDER = ['know', 'fuzzy', 'unknown'];
+
+const state = {
+  layers: {},
+  conns: {},
+  knowledge: {},
+  comments: [],
+  activePreset: 'Full System',
+  highlight: null,
+  zoom: 1,
+  panX: 0,
+  panY: 0,
+};
+
+// Init state
+Object.keys(LAYERS).forEach(k => state.layers[k] = true);
+Object.keys(CONN_TYPES).forEach(k => state.conns[k] = true);
+nodes.forEach(n => state.knowledge[n.id] = 'fuzzy');
+
+// ═══════════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════════
+
+const svg = document.getElementById('canvas');
+const NS = 'http://www.w3.org/2000/svg';
+
+function el(tag, attrs = {}) {
+  const e = document.createElementNS(NS, tag);
+  Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+  return e;
+}
+
+function renderDiagram() {
+  svg.innerHTML = '';
+
+  // Defs for arrow markers
+  const defs = el('defs');
+  Object.entries(CONN_TYPES).forEach(([type, cfg]) => {
+    const marker = el('marker', {
+      id: `arrow-${type}`, markerWidth: '8', markerHeight: '6',
+      refX: '7', refY: '3', orient: 'auto', markerUnits: 'strokeWidth'
+    });
+    const poly = el('polygon', { points: '0 0, 8 3, 0 6', fill: cfg.color });
+    marker.appendChild(poly);
+    defs.appendChild(marker);
+  });
+  svg.appendChild(defs);
+
+  // Group for pan/zoom
+  const g = el('g', { transform: `translate(${state.panX},${state.panY}) scale(${state.zoom})` });
+  svg.appendChild(g);
+
+  const visibleNodes = nodes.filter(n => state.layers[n.layer]);
+  const visibleIds = new Set(visibleNodes.map(n => n.id));
+
+  // Draw connections
+  connections.forEach(conn => {
+    if (!state.conns[conn.type]) return;
+    if (!visibleIds.has(conn.from) || !visibleIds.has(conn.to)) return;
+
+    const fromNode = nodes.find(n => n.id === conn.from);
+    const toNode = nodes.find(n => n.id === conn.to);
+    const cfg = CONN_TYPES[conn.type];
+
+    const x1 = fromNode.x + fromNode.w / 2;
+    const y1 = fromNode.y + fromNode.h / 2;
+    const x2 = toNode.x + toNode.w / 2;
+    const y2 = toNode.y + toNode.h / 2;
+
+    // Curved path
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const cx = x1 + dx * 0.5;
+    const cy = y1 + dy * 0.5 + (Math.abs(dx) > 200 ? -30 : 0);
+
+    const isHighlighted = !state.highlight || (state.highlight.has(conn.from) && state.highlight.has(conn.to));
+    const opacity = state.highlight ? (isHighlighted ? 0.8 : 0.08) : 0.4;
+
+    const path = el('path', {
+      d: `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`,
+      stroke: cfg.color,
+      'stroke-width': isHighlighted && state.highlight ? '2.5' : '1.5',
+      'stroke-dasharray': cfg.dash,
+      fill: 'none',
+      opacity: opacity,
+      'marker-end': `url(#arrow-${conn.type})`,
+    });
+    g.appendChild(path);
+
+    // Edge label
+    if (conn.label && isHighlighted) {
+      const lx = x1 + dx * 0.5;
+      const ly = y1 + dy * 0.5 + (Math.abs(dx) > 200 ? -32 : -8);
+      const label = el('text', {
+        x: lx, y: ly,
+        'text-anchor': 'middle',
+        'font-size': '9',
+        fill: cfg.color,
+        opacity: state.highlight ? 0.9 : 0.5,
+        'font-family': '-apple-system, system-ui, sans-serif',
+      });
+      label.textContent = conn.label;
+      g.appendChild(label);
+    }
+  });
+
+  // Draw nodes
+  visibleNodes.forEach(node => {
+    const layer = LAYERS[node.layer];
+    const isHighlighted = !state.highlight || state.highlight.has(node.id);
+    const opacity = state.highlight ? (isHighlighted ? 1 : 0.12) : 1;
+    const hasComment = state.comments.some(c => c.target === node.id);
+    const know = state.knowledge[node.id];
+
+    const group = el('g', { opacity, cursor: 'pointer' });
+
+    // Node rect
+    const rect = el('rect', {
+      x: node.x, y: node.y,
+      width: node.w, height: node.h,
+      rx: '8', ry: '8',
+      fill: layer.fill,
+      stroke: hasComment ? '#ec4899' : layer.border,
+      'stroke-width': hasComment ? '2.5' : (isHighlighted && state.highlight ? '2' : '1.2'),
+    });
+    group.appendChild(rect);
+
+    // Knowledge indicator dot
+    const knowColors = { know: '#10b981', fuzzy: '#f59e0b', unknown: '#ef4444' };
+    const dot = el('circle', {
+      cx: node.x + node.w - 8, cy: node.y + 8,
+      r: '4',
+      fill: knowColors[know],
+      opacity: '0.8',
+    });
+    group.appendChild(dot);
+
+    // Label
+    const label = el('text', {
+      x: node.x + node.w / 2, y: node.y + (node.h > 40 ? 18 : 16),
+      'text-anchor': 'middle',
+      'font-size': '12',
+      'font-weight': '600',
+      fill: '#e2e4eb',
+      'font-family': '-apple-system, system-ui, sans-serif',
+    });
+    label.textContent = node.label;
+    group.appendChild(label);
+
+    // Subtitle
+    const sub = el('text', {
+      x: node.x + node.w / 2, y: node.y + (node.h > 40 ? 32 : 30),
+      'text-anchor': 'middle',
+      'font-size': '9',
+      fill: '#8b8fa3',
+      'font-family': "'SF Mono', monospace",
+    });
+    sub.textContent = node.subtitle;
+    group.appendChild(sub);
+
+    // Event handlers
+    group.addEventListener('mouseenter', e => showTooltip(e, node));
+    group.addEventListener('mouseleave', hideTooltip);
+    group.addEventListener('click', () => openModal(node));
+
+    g.appendChild(group);
+  });
+}
+
+// ═══════════════════════════════════════════
+// TOOLTIP
+// ═══════════════════════════════════════════
+
+const tooltip = document.getElementById('tooltip');
+
+function showTooltip(e, node) {
+  const know = state.knowledge[node.id];
+  const knowLabel = KNOWLEDGE[know];
+  tooltip.innerHTML = `
+    <div class="tt-title">${node.label} <span style="font-size:10px;color:${know === 'know' ? '#6ee7b7' : know === 'fuzzy' ? '#fcd34d' : '#fca5a5'}">[${knowLabel}]</span></div>
+    <div class="tt-file">${node.subtitle}</div>
+    <div class="tt-desc">${node.desc}</div>
+  `;
+  const rect = document.querySelector('.canvas-area').getBoundingClientRect();
+  tooltip.style.left = (e.clientX - rect.left + 12) + 'px';
+  tooltip.style.top = (e.clientY - rect.top - 10) + 'px';
+  tooltip.classList.add('visible');
+}
+
+function hideTooltip() {
+  tooltip.classList.remove('visible');
+}
+
+// ═══════════════════════════════════════════
+// PAN & ZOOM
+// ═══════════════════════════════════════════
+
+let isPanning = false, panStartX, panStartY;
+
+svg.addEventListener('mousedown', e => {
+  if (e.target === svg || e.target.tagName === 'svg') {
+    isPanning = true;
+    panStartX = e.clientX - state.panX;
+    panStartY = e.clientY - state.panY;
+  }
+});
+
+window.addEventListener('mousemove', e => {
+  if (isPanning) {
+    state.panX = e.clientX - panStartX;
+    state.panY = e.clientY - panStartY;
+    renderDiagram();
+  }
+});
+
+window.addEventListener('mouseup', () => { isPanning = false; });
+
+svg.addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  state.zoom = Math.max(0.3, Math.min(3, state.zoom * delta));
+  renderDiagram();
+}, { passive: false });
+
+function zoomIn() { state.zoom = Math.min(3, state.zoom * 1.2); renderDiagram(); }
+function zoomOut() { state.zoom = Math.max(0.3, state.zoom * 0.83); renderDiagram(); }
+function zoomReset() { state.zoom = 1; state.panX = 0; state.panY = 0; renderDiagram(); }
+
+// ═══════════════════════════════════════════
+// COMMENT SYSTEM
+// ═══════════════════════════════════════════
+
+let modalNode = null;
+
+function openModal(node) {
+  modalNode = node;
+  document.getElementById('modal-title').textContent = node.label;
+  document.getElementById('modal-file').textContent = node.subtitle;
+  document.getElementById('modal-textarea').value = '';
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('modal-textarea').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalNode = null;
+}
+
+function saveComment() {
+  const text = document.getElementById('modal-textarea').value.trim();
+  if (!text || !modalNode) return;
+  state.comments.push({
+    id: Date.now(),
+    target: modalNode.id,
+    targetLabel: modalNode.label,
+    targetFile: modalNode.subtitle,
+    text,
+  });
+  closeModal();
+  updateAll();
+}
+
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+function renderComments() {
+  const list = document.getElementById('comment-list');
+  document.getElementById('comment-count').textContent = state.comments.length;
+  if (!state.comments.length) {
+    list.innerHTML = '<div class="no-comments">Click a node on the canvas to add feedback</div>';
+    return;
+  }
+  list.innerHTML = state.comments.map(c => `
+    <div class="comment-item">
+      <button class="comment-delete" onclick="deleteComment(${c.id})">×</button>
+      <div class="comment-target">${c.targetLabel}</div>
+      <div class="comment-file">${c.targetFile}</div>
+      <div class="comment-text">${c.text}</div>
+    </div>
+  `).join('');
+}
+
+function deleteComment(id) {
+  state.comments = state.comments.filter(c => c.id !== id);
+  updateAll();
+}
+
+// ═══════════════════════════════════════════
+// SIDEBAR CONTROLS
+// ═══════════════════════════════════════════
+
+function renderPresets() {
+  const el = document.getElementById('presets');
+  el.innerHTML = Object.keys(PRESETS).map(name => `
+    <button class="preset-btn ${state.activePreset === name ? 'active' : ''}"
+            onclick="applyPreset('${name}')">${name}</button>
+  `).join('');
+}
+
+function applyPreset(name) {
+  const p = PRESETS[name];
+  state.activePreset = name;
+  Object.keys(LAYERS).forEach(k => state.layers[k] = p.layers.includes(k));
+  Object.keys(CONN_TYPES).forEach(k => state.conns[k] = p.conns.includes(k));
+  state.highlight = p.highlight ? new Set(p.highlight) : null;
+  updateAll();
+}
+
+function renderLayerToggles() {
+  const el = document.getElementById('layer-toggles');
+  el.innerHTML = Object.entries(LAYERS).map(([key, cfg]) => `
+    <label class="layer-toggle">
+      <input type="checkbox" ${state.layers[key] ? 'checked' : ''}
+             onchange="state.layers['${key}']=this.checked; state.activePreset=''; state.highlight=null; updateAll()">
+      <span class="layer-dot" style="background:${cfg.color}"></span>
+      ${cfg.label}
+    </label>
+  `).join('');
+}
+
+function renderConnToggles() {
+  const el = document.getElementById('conn-toggles');
+  el.innerHTML = Object.entries(CONN_TYPES).map(([key, cfg]) => `
+    <label class="conn-toggle">
+      <input type="checkbox" ${state.conns[key] ? 'checked' : ''}
+             onchange="state.conns['${key}']=this.checked; state.activePreset=''; updateAll()">
+      <span class="conn-line" style="background:${cfg.color};${cfg.dash ? 'border-top:2px dashed '+cfg.color+';background:none;height:0' : ''}"></span>
+      ${cfg.label}
+    </label>
+  `).join('');
+}
+
+function renderNodeList() {
+  const list = document.getElementById('node-list');
+  const visibleNodes = nodes.filter(n => state.layers[n.layer]);
+  list.innerHTML = visibleNodes.map(n => {
+    const k = state.knowledge[n.id];
+    const cls = k === 'know' ? 'badge-know' : k === 'fuzzy' ? 'badge-fuzzy' : 'badge-unknown';
+    return `
+      <div class="node-item" onclick="cycleKnowledge('${n.id}')">
+        <span class="knowledge-badge ${cls}">${KNOWLEDGE[k]}</span>
+        <span>${n.label}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function cycleKnowledge(id) {
+  const cur = state.knowledge[id];
+  const idx = KNOWLEDGE_ORDER.indexOf(cur);
+  state.knowledge[id] = KNOWLEDGE_ORDER[(idx + 1) % 3];
+  updateAll();
+}
+
+function renderLegend() {
+  const el = document.getElementById('legend');
+  el.innerHTML = Object.entries(CONN_TYPES)
+    .filter(([k]) => state.conns[k])
+    .map(([k, cfg]) => `
+      <div class="legend-item">
+        <span class="legend-line" style="background:${cfg.color};${cfg.dash ? 'border-top:2px dashed '+cfg.color+';background:none;height:0' : ''}"></span>
+        <span>${cfg.label}</span>
+      </div>
+    `).join('');
+}
+
+// ═══════════════════════════════════════════
+// PROMPT OUTPUT
+// ═══════════════════════════════════════════
+
+function updatePrompt() {
+  const know = [], fuzzy = [], unknown = [];
+  nodes.forEach(n => {
+    if (!state.layers[n.layer]) return;
+    const k = state.knowledge[n.id];
+    const entry = `${n.label} (${n.subtitle})`;
+    if (k === 'know') know.push(entry);
+    else if (k === 'fuzzy') fuzzy.push(entry);
+    else unknown.push(entry);
+  });
+
+  const parts = [];
+  parts.push(`I'm working with the AI Orchestrator multi-agent system.`);
+
+  if (know.length) parts.push(`\nI understand: ${know.join(', ')}.`);
+  if (fuzzy.length) parts.push(`\nI'm fuzzy on: ${fuzzy.join(', ')}.`);
+  if (unknown.length) parts.push(`\nI don't understand: ${unknown.join(', ')}.`);
+
+  if (state.comments.length) {
+    parts.push(`\nFeedback on specific components:`);
+    state.comments.forEach(c => {
+      parts.push(`\n**${c.targetLabel}** (${c.targetFile}):\n${c.text}`);
+    });
+  }
+
+  if (fuzzy.length || unknown.length) {
+    parts.push(`\nPlease explain the concepts I'm fuzzy on or don't understand, building on what I already know. Use concrete file paths and code references from this repository.`);
+  } else if (state.comments.length) {
+    parts.push(`\nPlease address the feedback above using this repository's architecture.`);
+  }
+
+  document.getElementById('prompt-text').textContent = parts.join('');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-text').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ═══════════════════════════════════════════
+// UPDATE ALL
+// ═══════════════════════════════════════════
+
+function updateAll() {
+  renderDiagram();
+  renderPresets();
+  renderLayerToggles();
+  renderConnToggles();
+  renderNodeList();
+  renderComments();
+  renderLegend();
+  updatePrompt();
+}
+
+updateAll();
+</script>
+</body>
+</html>
